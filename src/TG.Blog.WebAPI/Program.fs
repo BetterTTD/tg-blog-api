@@ -1,25 +1,55 @@
-namespace TG.Blog.WebAPI
+module Program
 
 open System
-open System.Collections.Generic
-open System.IO
-open System.Linq
-open System.Threading.Tasks
-open Microsoft.AspNetCore
+open Giraffe
+
+open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Hosting
-open Microsoft.Extensions.Configuration
+open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Logging
 
-module Program =
-    let createHostBuilder args =
-        Host.CreateDefaultBuilder(args)
-            .ConfigureWebHostDefaults(fun webBuilder ->
-                webBuilder.UseStartup<Startup>() |> ignore
-            )
+let errorHandler (ex : Exception) (logger : ILogger) =
+    logger.LogError(EventId(), ex, "An unhandled exception has occurred while executing the request.")
+    clearResponse >=> setStatusCode 500 >=> text ex.Message
 
-    [<EntryPoint>]
-    let main args =
-        createHostBuilder(args).Build().Run()
+let webApi =
+    choose [
+        GET >=>
+            choose [
+                route  "/"           >=> text "index"
+                route  "/ping"       >=> text "pong"
+                route  "/error"      >=> (fun _ _ -> failwith "Something went wrong!")
+            ]
+        RequestErrors.notFound (text "Not Found") ]
 
-        0 // Exit code
+let configureApp (app : IApplicationBuilder) =
+    app.UseGiraffeErrorHandler(errorHandler)
+       .UseStaticFiles()
+       .UseResponseCaching()
+       .UseGiraffe webApi
+
+let configureServices (services : IServiceCollection) =
+    services
+        .AddResponseCaching()
+        .AddGiraffe() |> ignore
+    services.AddDataProtection() |> ignore
+
+let configureLogging (loggerBuilder : ILoggingBuilder) =
+    loggerBuilder.AddFilter(fun lvl -> lvl.Equals LogLevel.Error)
+                 .AddConsole()
+                 .AddDebug() |> ignore
+
+[<EntryPoint>]
+let main _ =
+    Host.CreateDefaultBuilder()
+        .ConfigureWebHostDefaults(
+            fun webHostBuilder ->
+                webHostBuilder
+                    .Configure(configureApp)
+                    .ConfigureServices(configureServices)
+                    .ConfigureLogging(configureLogging)
+                    |> ignore)
+        .Build()
+        .Run()
+    0
