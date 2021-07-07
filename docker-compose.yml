@@ -1,0 +1,29 @@
+version: '3.4'
+services:
+  api:
+    image: tg.blog.api
+    container_name: tg.blog.api
+    networks:
+      - tg.blog
+    depends_on:
+      - db
+    build:
+      context: .
+      dockerfile: src/TG.Blog.WebAPI/Dockerfile
+    ports:
+      - 53961:80
+  db:
+    image: mongo:latest
+    container_name: tg.blog.db
+    networks:
+      - tg.blog
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    ports:
+      - 27017:27017
+    
+networks:
+  tg.blog:
+    name: tg.blog.network

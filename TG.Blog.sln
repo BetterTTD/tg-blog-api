@@ -4,6 +4,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{38FBE316-DAB
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TG.Blog.WebAPI", "src\TG.Blog.WebAPI\TG.Blog.WebAPI.fsproj", "{05552DFB-A80F-4109-92DE-D3F8C682B370}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{68954811-DB4E-4DE4-B9CA-2FAE837B34EE}"
+ProjectSection(SolutionItems) = preProject
+	docker-compose.yml = docker-compose.yml
+EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
