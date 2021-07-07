@@ -1,7 +1,13 @@
 module Program
 
 open System
+open System.Collections
+open FSharp.Control.Tasks
 open Giraffe
+open TaskBuilder
+
+open Articles
+open Articles.ArticleInMemory
 
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Hosting
@@ -9,18 +15,50 @@ open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Logging
 
+
 let errorHandler (ex : Exception) (logger : ILogger) =
     logger.LogError(EventId(), ex, "An unhandled exception has occurred while executing the request.")
     clearResponse >=> setStatusCode 500 >=> text ex.Message
+
+let articlesHandler : HttpHandler =
+    fun next context ->
+        let find = context.GetService<ArticleFind>()
+        let articles = find ArticleCriteria.All
+        json articles next context
+
+let addArticleHandler : HttpHandler =
+    fun next context ->
+        task {
+            let save = context.GetService<ArticleSave>()
+            let! article = context.BindJsonAsync<Article>()
+            let article = { article with Id = ShortGuid.fromGuid(Guid.NewGuid()) }
+            return! json (save article) next context
+        }
 
 let webApi =
     choose [
         GET >=>
             choose [
-                route  "/"           >=> text "index"
-                route  "/ping"       >=> text "pong"
-                route  "/error"      >=> (fun _ _ -> failwith "Something went wrong!")
+                route  "/"          >=>  text "index"
+                route  "/ping"      >=>  text "pong"
+                route  "/articles"  >=>  articlesHandler
             ]
+            
+        POST >=>
+            choose [
+                route "/articles"   >=>  addArticleHandler
+            ]
+            
+        PUT >=>
+            choose [
+                routef "/articles/%s" (fun id -> text ("Update " + id))
+            ]
+            
+        DELETE >=>
+            choose [
+                routef "/articles/%s" (fun id -> text ("Delete " + id))
+            ]
+            
         RequestErrors.notFound (text "Not Found") ]
 
 let configureApp (app : IApplicationBuilder) =
@@ -31,6 +69,7 @@ let configureApp (app : IApplicationBuilder) =
 
 let configureServices (services : IServiceCollection) =
     services
+        .AddArticleInMemory(Hashtable())
         .AddResponseCaching()
         .AddGiraffe() |> ignore
     services.AddDataProtection() |> ignore
