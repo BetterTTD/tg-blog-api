@@ -15,4 +15,4 @@ type ArticleFind = ArticleCriteria -> Article[]
 
 type ArticleSave = Article -> Article
 
-type TodoDelete = string -> bool
+type ArticleDelete = string -> bool

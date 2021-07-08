@@ -4,7 +4,6 @@ open System
 open System.Collections
 open FSharp.Control.Tasks
 open Giraffe
-open TaskBuilder
 
 open Articles
 open Articles.ArticleInMemory
@@ -68,11 +67,10 @@ let configureApp (app : IApplicationBuilder) =
        .UseGiraffe webApi
 
 let configureServices (services : IServiceCollection) =
-    services
-        .AddArticleInMemory(Hashtable())
-        .AddResponseCaching()
-        .AddGiraffe() |> ignore
-    services.AddDataProtection() |> ignore
+    services.AddArticleInMemory(Hashtable())
+            .AddResponseCaching()
+            .AddGiraffe()
+            .AddDataProtection() |> ignore
 
 let configureLogging (loggerBuilder : ILoggingBuilder) =
     loggerBuilder.AddFilter(fun lvl -> lvl.Equals LogLevel.Error)
