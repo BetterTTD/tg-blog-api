@@ -34,6 +34,22 @@ let addArticleHandler : HttpHandler =
             return! json (save article) next context
         }
 
+let updateArticleHandler id : HttpHandler =
+    fun next context ->
+        task {
+            let save = context.GetService<ArticleSave>()
+            let! article = context.BindJsonAsync<Article>()
+            let article = { article with Id = id }
+            return! json (save article) next context
+        }
+
+let deleteArticleHandler id : HttpHandler =
+    fun next context ->
+        task {
+            let delete = context.GetService<ArticleDelete>()
+            return! json (delete id) next context
+        }
+
 let webApi =
     choose [
         GET >=>
@@ -50,12 +66,12 @@ let webApi =
             
         PUT >=>
             choose [
-                routef "/articles/%s" (fun id -> text ("Update " + id))
+                routef "/articles/%s" (fun id -> updateArticleHandler id)
             ]
             
         DELETE >=>
             choose [
-                routef "/articles/%s" (fun id -> text ("Delete " + id))
+                routef "/articles/%s" (fun id -> deleteArticleHandler id)
             ]
             
         RequestErrors.notFound (text "Not Found") ]
