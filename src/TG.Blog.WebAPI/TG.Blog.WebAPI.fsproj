@@ -8,6 +8,7 @@
     <ItemGroup>
         <Compile Include="Domain.fs" />
         <Compile Include="ArticleInMemory.fs" />
+        <Compile Include="ArticleRepository.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
 
