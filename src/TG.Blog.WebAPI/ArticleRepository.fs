@@ -34,3 +34,4 @@ type IServiceCollection with
         this.AddSingleton<ArticleFind>(find collection)     |> ignore
         this.AddSingleton<ArticleSave>(save collection)     |> ignore
         this.AddSingleton<ArticleDelete>(delete collection) |> ignore
+        this

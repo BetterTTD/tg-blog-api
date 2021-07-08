@@ -1,4 +1,4 @@
-﻿module Articles.ArticleInMemory
+﻿module ArticleInMemory
 
 open Articles
 open System.Collections

@@ -1,18 +1,19 @@
 module Program
 
 open System
-open System.Collections
 open FSharp.Control.Tasks
 open Giraffe
 
 open Articles
-open Articles.ArticleInMemory
+open ArticleRepository
 
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Hosting
+open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Logging
+open MongoDB.Driver
 
 
 let errorHandler (ex : Exception) (logger : ILogger) =
@@ -83,7 +84,13 @@ let configureApp (app : IApplicationBuilder) =
        .UseGiraffe webApi
 
 let configureServices (services : IServiceCollection) =
-    services.AddArticleInMemory(Hashtable())
+    let serviceProvider = services.BuildServiceProvider()
+    let cfg = serviceProvider.GetService<IConfiguration>()
+    let mongo = MongoClient (cfg.GetConnectionString "BlogDb")
+    let db = mongo.GetDatabase "blog"
+    
+    
+    services.AddArticleRepository(db.GetCollection<Article>("articles"))
             .AddResponseCaching()
             .AddGiraffe()
             .AddDataProtection() |> ignore
